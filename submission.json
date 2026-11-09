@@ -1,0 +1,44 @@
+{
+  "project_name": "MediTwin AI",
+  "tagline": "Traceable Clinical Record Intelligence Platform",
+  "category": "Healthcare Record Intelligence",
+  "event": "IBM Db2Hack 2026",
+  "submission_date": "2026-11-10",
+  "author": {
+    "name": "Vipul Mishra",
+    "role": "Solo Builder"
+  },
+  "technology_stack": {
+    "database": {
+      "system": "IBM Db2 Community Edition",
+      "connector": "ibm_db",
+      "schema_tables": ["PATIENT", "DOCUMENT", "OBSERVATION", "TIMELINE_EVENT", "AUDIT_LOG"],
+      "query_type": "Prepared statements with variable parameter binding"
+    },
+    "ai_frameworks": [
+      "LangChain",
+      "LangGraph"
+    ],
+    "llm_provider": {
+      "provider": "Google Gemini",
+      "model": "gemini-2.0-flash",
+      "usage": "Structured document extraction and evidence-grounded summarization"
+    },
+    "frontend": "Streamlit + Plotly",
+    "document_parser": "PyMuPDF",
+    "validation": "Pydantic v2",
+    "test_suite": "Pytest (40 tests across 18 categories)"
+  },
+  "key_features": [
+    "Multi-page PDF extraction with page-level snippet and provenance tracking",
+    "Strict Pydantic schema validation for numeric values, units, and dates",
+    "Mandatory human-in-the-loop verification gate (PENDING -> APPROVED/REJECTED)",
+    "Relational Db2 storage with strict foreign keys and transactional rollback",
+    "Deterministic longitudinal trend calculation (no hallucinated differences)",
+    "Evidence-grounded Q&A backed strictly by approved Db2 records",
+    "Append-only audit logging for compliance and governance",
+    "Full adherence to medical safety boundaries (synthetic demo data only, no autonomous diagnosis)"
+  ],
+  "entrypoint": "app.py",
+  "test_command": "pytest -v"
+}

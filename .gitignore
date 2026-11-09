@@ -1,0 +1,35 @@
+# Dependencies
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Data
+*.pdf
+!sample_data/synthetic_reports/*.pdf
+
+# Db2
+*.lock
+
