@@ -82,3 +82,4 @@ Document extraction accuracy was evaluated across all three synthetic multi-page
 1. **Retry Strategy:** Utilizes Tenacity with exponential backoff on HTTP 429 / RESOURCE_EXHAUSTED responses.
 2. **Deterministic Dual-Engine Fallback:** If Gemini API key is missing or network connectivity is severed, the platform transitions to the high-precision deterministic clinical parser without failing the upload pipeline.
 3. **Structured Verification:** All extracted items pass through Pydantic v2 `ExtractedObservation`. Any record missing a unit or an observation date flags mandatory human verification (`needs_review=True`).
+

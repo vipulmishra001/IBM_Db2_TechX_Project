@@ -32,3 +32,4 @@ def test_safe_date_parser():
     # Invalid string fallback
     dt_bad, s_bad = parse_safe_date("invalid-date")
     assert dt_bad == datetime.min
+

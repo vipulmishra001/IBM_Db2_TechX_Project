@@ -105,3 +105,4 @@ Final Response: I could not find sufficient approved records to answer this ques
 1. **Zero LLM Database Credentials:** The LangGraph state and prompt payloads contain zero database connection strings, passwords, or schema internals.
 2. **Deterministic Routing:** Conditional edges strictly follow typed state attributes (`request_type`, `parse_status`).
 3. **Review Barrier:** No extracted observation transitions from `PENDING` to `APPROVED` within the graph without an external human confirmation.
+

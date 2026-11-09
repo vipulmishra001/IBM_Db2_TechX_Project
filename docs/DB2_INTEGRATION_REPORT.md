@@ -123,3 +123,4 @@ The integration test `tests/integration/test_db2_live.py` is configured to execu
 8. `test_live_sql_injection_defense()`: Confirms malicious SQL payloads remain harmless literal parameters.
 
 **Current Test Status:** Fails honestly with connection error until the local container or remote instance is started.
+

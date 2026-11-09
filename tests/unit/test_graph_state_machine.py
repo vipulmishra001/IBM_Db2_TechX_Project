@@ -31,3 +31,4 @@ def test_safety_check_node_passes_clean_evidence():
     state = {"generated_answer": "The latest recorded HbA1c was 6.8% on 2026-11-08 in SyntheticReport_B.pdf."}
     res = safety_check_node(state)
     assert res["safety_passed"] is True
+

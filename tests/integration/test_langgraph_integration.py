@@ -30,6 +30,7 @@ def test_run_upload_workflow_end_to_end():
     assert "extract_observations" in nodes
     assert "validate_extraction" in nodes
     assert "human_review_gate" in nodes
+    assert "persist_to_db2" in nodes
     assert "finalize_response" in nodes
 
     # Verify extraction succeeded and human review gate is mandatory

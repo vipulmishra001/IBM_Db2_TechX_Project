@@ -181,6 +181,11 @@ def persist_to_db2_node(state: dict) -> dict:
                 logger.error(f"Error persisting observation in node: {e}")
 
         s["observations_saved"] = saved_count
+        try:
+            if hasattr(repo, "connection") and repo.connection and hasattr(repo.connection, "commit"):
+                repo.connection.commit()
+        except Exception as e:
+            logger.error(f"Error committing persisted observations: {e}")
 
     s["completed_nodes"] = s.get("completed_nodes", []) + ["persist_to_db2"]
     return s

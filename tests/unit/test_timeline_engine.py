@@ -63,3 +63,4 @@ def test_zero_baseline_handling():
     assert trend["percentage_change"] is None  # Undefined division by zero avoided
     summary = format_trend_summary(trend)
     assert "Undefined (baseline measurement was 0.0)" in summary
+

@@ -564,33 +564,13 @@ elif page == "📄 Document Upload":
                         if extracted:
                             st.dataframe(pd.DataFrame(extracted), use_container_width=True)
 
-                            # Persist pending observations into Db2
-                            if conn.is_connected and target_doc_id:
-                                saved_count = 0
-                                for obs in extracted:
-                                    try:
-                                        repo.create_observation(
-                                            patient_id=selected_pid,
-                                            document_id=target_doc_id,
-                                            test_name=obs.get("test_name"),
-                                            test_code=obs.get("test_code"),
-                                            value_numeric=obs.get("value_numeric"),
-                                            value_text=obs.get("value_text"),
-                                            unit=obs.get("unit"),
-                                            reference_low=obs.get("reference_low"),
-                                            reference_high=obs.get("reference_high"),
-                                            observed_at=obs.get("observed_at"),
-                                            source_page=obs.get("source_page"),
-                                            source_snippet=obs.get("source_snippet"),
-                                            extraction_confidence=obs.get("confidence"),
-                                        )
-                                        saved_count += 1
-                                    except Exception as e:
-                                        st.error(f"Error saving observation: {e}")
-
-                                repo.connection.commit()
+                            # Audit logging and UI notification from LangGraph persistence node
+                            saved_count = workflow_result.get("observations_saved", 0)
+                            if conn.is_connected and target_doc_id and saved_count > 0:
                                 get_audit().log_extraction(target_doc_id, saved_count)
-                                st.success(f"✅ Stored {saved_count} observations with review_status='PENDING'. Go to **Human Review**.")
+                                st.success(f"✅ LangGraph `persist_to_db2` stored {saved_count} observations with review_status='PENDING'. Go to **Human Review**.")
+                            elif not conn.is_connected:
+                                st.info("Extracted observations verified in memory. Connect Db2 to persist records.")
 
 
 # ================================================================

@@ -200,3 +200,65 @@ def test_full_patient_lifecycle_e2e():
     event_types = [e["event_type"] for e in audit_events]
     assert event_types.count("OBSERVATION_APPROVED") == 8
     assert event_types.count("OBSERVATION_REJECTED") == 1
+
+
+def test_patient_isolation_e2e():
+    """Verify complete isolation between two distinct synthetic patients."""
+    mock_repo = MagicMock()
+
+    # Patient 1 has HbA1c 6.4 from Report A
+    patient1_records = [
+        {
+            "OBSERVATION_ID": 1,
+            "PATIENT_ID": 1,
+            "TEST_CODE": "HBA1C",
+            "TEST_NAME": "Hemoglobin A1c",
+            "VALUE_NUMERIC": 6.4,
+            "UNIT": "%",
+            "OBSERVED_AT": "2026-10-12",
+            "FILE_NAME": "SyntheticReport_A_Oct2026.pdf",
+            "SOURCE_PAGE": 1,
+            "SOURCE_SNIPPET": "HbA1c 6.4 %",
+            "REVIEW_STATUS": "APPROVED",
+        }
+    ]
+
+    # Patient 2 has HbA1c 6.8 from Report B
+    patient2_records = [
+        {
+            "OBSERVATION_ID": 2,
+            "PATIENT_ID": 2,
+            "TEST_CODE": "HBA1C",
+            "TEST_NAME": "Hemoglobin A1c",
+            "VALUE_NUMERIC": 6.8,
+            "UNIT": "%",
+            "OBSERVED_AT": "2026-11-08",
+            "FILE_NAME": "SyntheticReport_B_Nov2026.pdf",
+            "SOURCE_PAGE": 1,
+            "SOURCE_SNIPPET": "HbA1c 6.8 %",
+            "REVIEW_STATUS": "APPROVED",
+        }
+    ]
+
+    def mock_get_approved(patient_id, test_code=None, **kwargs):
+        if patient_id == 1:
+            return patient1_records
+        elif patient_id == 2:
+            return patient2_records
+        return []
+
+    mock_repo.get_approved_observations.side_effect = mock_get_approved
+    answer_svc = AnswerService(mock_repo)
+
+    # Query Patient 1
+    res1 = answer_svc.answer_question(patient_id=1, question="What was my HbA1c?")
+    assert "6.4" in res1["answer"]
+    assert "6.8" not in res1["answer"]
+    assert res1["evidence_cards"][0]["source_file"] == "SyntheticReport_A_Oct2026.pdf"
+
+    # Query Patient 2
+    res2 = answer_svc.answer_question(patient_id=2, question="What was my HbA1c?")
+    assert "6.8" in res2["answer"]
+    assert "6.4" not in res2["answer"]
+    assert res2["evidence_cards"][0]["source_file"] == "SyntheticReport_B_Nov2026.pdf"
+

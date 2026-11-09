@@ -24,3 +24,4 @@ def test_cross_patient_document_reference_rejected():
         )
 
     assert "Cross-patient integrity violation" in str(excinfo.value)
+

@@ -140,3 +140,4 @@
 | **How do you guarantee the LLM doesn't hallucinate numbers?** | Trend mathematics (deltas, percentages) are computed deterministically in Python before being passed to Gemini. The LLM is restricted by prompt and post-generation validation to report only facts present in the retrieved database evidence cards. |
 | **How is patient data isolated?** | Foreign keys and unique composite constraints (`fk_obs_doc_patient` on `(document_id, patient_id)`) at the Db2 database level prevent cross-patient referencing. |
 | **What happens if Db2 is temporarily offline?** | The application handles offline connectivity gracefully, displaying a clear offline status badge and guidance without inventing mock database states. |
+

@@ -16,3 +16,4 @@ def test_adversarial_prompt_injection_safety_catch():
         assert res["safety_passed"] is False
         assert "Clinical Safety Warning" in res["generated_answer"]
         assert "not provide medical diagnosis" in res["generated_answer"]
+

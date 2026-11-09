@@ -23,3 +23,4 @@ def test_compatible_normalized_units_allowed():
     trend = compute_metric_trend(obs, "HBA1C")
     assert trend["count"] == 2
     assert trend["absolute_change"] == 0.3
+

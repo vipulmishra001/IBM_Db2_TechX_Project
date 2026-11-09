@@ -89,3 +89,4 @@ if __name__ == "__main__":
     parser.add_argument("--fork-dir", required=True, help="Path to your clone of IBM_Db2_TechX_Project_Submission")
     args = parser.parse_args()
     prepare_submission(args.fork_dir)
+

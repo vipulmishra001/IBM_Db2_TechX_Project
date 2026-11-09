@@ -32,3 +32,4 @@ def test_malicious_query_payloads_do_not_inject():
             assert code == "HBA1C"
         else:
             assert code is None
+

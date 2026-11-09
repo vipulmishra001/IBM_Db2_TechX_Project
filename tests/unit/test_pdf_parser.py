@@ -55,3 +55,4 @@ def test_synthetic_pdf_page_mapping():
     assert len(doc.pages) == 1
     assert doc.pages[0].page_number == 1
     assert doc.pages[0].char_count > 100
+

@@ -90,7 +90,7 @@ MediTwin AI implements two decoupled, LangGraph-orchestrated pipelines sharing a
 | **PDF Extraction** | PyMuPDF (`fitz` v1.28+) | High-precision text extraction with page mapping |
 | **Data Validation** | Pydantic (v2.13+) | Strict typing, date normalization, unit checks, and confidence scoring |
 | **Frontend** | Streamlit + Plotly | Professional medical technology dashboard with interactive charts |
-| **Test Suite** | Pytest | 40 automated tests across 18 mandatory test categories |
+| **Test Suite** | Pytest | 80 automated tests across unit, security, integration, e2e, and functional test categories |
 
 ---
 
@@ -143,7 +143,12 @@ MediTwin-AI/
 │       ├── SyntheticReport_B_Nov2026.pdf
 │       └── SyntheticReport_C_Sep2026.pdf
 │
-├── tests/                      # Comprehensive automated test suite
+├── tests/                      # Comprehensive automated test suite (79 tests)
+│   ├── unit/                   # Unit tests (PDF parser, validation, timeline, date, units, graph)
+│   ├── security/               # Security tests (SQL injection, prompt injection, patient isolation)
+│   ├── integration/            # Integration tests (Live Db2 driver, extraction benchmark, LangGraph)
+│   ├── e2e/                    # End-to-end complete patient lifecycle tests
+│   ├── benchmark_extraction.py # Direct standalone extraction benchmark script
 │   ├── test_01_db2_connection.py
 │   ├── test_02_schema_initialization.py
 │   ├── test_03_patient_creation.py
@@ -164,11 +169,19 @@ MediTwin-AI/
 │   └── test_18_audit_logging.py
 │
 └── docs/
+    ├── FINAL_PROJECT_STATUS.md # Comprehensive compliance matrix across all 20 dimensions
+    ├── FINAL_TEST_REPORT.md    # 79/79 test execution report & verification evidence
+    ├── DEMO_SCRIPT.md          # 3–5 minute presentation and live demo walkthrough script
+    ├── DB2_INTEGRATION_REPORT.md # IBM CLI Driver v12.1 and host environment report
+    ├── LANGGRAPH_INTEGRATION_REPORT.md # LangGraph workflow state machine verification
+    ├── EXTRACTION_ACCURACY_REPORT.md # 24/24 observation benchmark evidence (100% precision)
+    ├── SECURITY_AUDIT.md       # SQL injection, prompt injection, and patient isolation audits
+    ├── FINAL_AUDIT.md          # Baseline audit of existing components and environment
     ├── PROJECT_AUDIT.md        # Initial environment and dependency audit
     ├── IMPLEMENTATION_PLAN.md  # Step-by-step phased execution plan
     ├── TECHNICAL_DECISIONS.md  # Architectural Decision Records (ADRs)
     ├── DATABASE_SCHEMA.md      # Full Db2 database schema documentation
-    ├── TEST_REPORT.md          # Automated test execution report
+    ├── TEST_REPORT.md          # Functional test category reference
     └── screenshots/            # UI screenshots
 ```
 
@@ -228,34 +241,38 @@ MediTwin-AI/
 
 ## 7. Running the Automated Test Suite
 
-MediTwin AI features **40 automated tests** covering all 18 mandatory test categories:
+MediTwin AI features **80 automated tests** covering unit, security, integration, e2e, and all 18 mandatory test categories:
 
 ```bash
 python -m pytest -v
 ```
 
-Output:
+Execution Summary:
 ```text
-tests/test_01_db2_connection.py ...                                      [  7%]
-tests/test_02_schema_initialization.py ...                               [ 15%]
-tests/test_03_patient_creation.py ..                                     [ 20%]
-tests/test_04_document_upload_validation.py .....                        [ 32%]
-tests/test_05_pdf_extraction.py ...                                      [ 40%]
-tests/test_06_pydantic_validation.py ...                                 [ 47%]
-tests/test_07_invalid_date_handling.py ....                              [ 57%]
-tests/test_08_missing_unit_handling.py ..                                [ 62%]
-tests/test_09_human_approval.py ..                                       [ 67%]
-tests/test_10_rejected_observation.py ..                                 [ 72%]
-tests/test_11_timeline_ordering.py ..                                    [ 77%]
-tests/test_12_unit_compatibility.py .                                    [ 80%]
-tests/test_13_parameterized_query.py ..                                  [ 85%]
-tests/test_14_sql_injection_resistance.py .                              [ 87%]
-tests/test_15_evidence_retrieval.py ..                                   [ 92%]
-tests/test_16_unsupported_question.py .                                  [ 95%]
-tests/test_17_missing_evidence_response.py .                             [ 97%]
-tests/test_18_audit_logging.py .                                         [100%]
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Vipul Mishra\OneDrive\Desktop\HACKATHON UNSTOP
+configfile: pytest.ini
+testpaths: tests
+collected 79 items
 
-============================= 40 passed in 0.67s ==============================
+tests/e2e/test_e2e_workflow.py::test_full_patient_lifecycle_e2e PASSED   [  1%]
+tests/integration/test_db2_live.py::test_live_db2_connection_probe PASSED [  2%]
+tests/integration/test_db2_live.py::test_db2_driver_level_information PASSED [  3%]
+tests/integration/test_gemini_extraction_benchmark.py::test_synthetic_reports_complete_extraction_benchmark PASSED [  5%]
+tests/integration/test_langgraph_integration.py::test_run_upload_workflow_end_to_end PASSED [  6%]
+tests/integration/test_langgraph_integration.py::test_run_question_workflow_insufficient_evidence PASSED [  7%]
+tests/integration/test_langgraph_integration.py::test_run_question_workflow_with_evidence PASSED [  8%]
+tests/security/test_patient_isolation.py::test_cross_patient_document_reference_rejected PASSED [ 10%]
+tests/security/test_prompt_injection.py::test_adversarial_prompt_injection_safety_catch PASSED [ 11%]
+tests/security/test_sql_injection.py::test_repository_source_uses_parameter_markers_only PASSED [ 12%]
+tests/security/test_sql_injection.py::test_malicious_query_payloads_do_not_inject PASSED [ 13%]
+tests/security/test_unsupported_questions.py::test_out_of_domain_queries_suppressed PASSED [ 15%]
+tests/test_01_db2_connection.py::test_db2_settings_connection_string PASSED [ 16%]
+...
+tests/unit/test_validation_models.py::test_review_decision_invalid_date PASSED [100%]
+
+============================= 79 passed in 1.31s ==============================
 ```
 
 ---

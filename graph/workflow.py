@@ -94,9 +94,7 @@ def build_meditwin_graph() -> StateGraph:
     )
     workflow.add_edge("extract_observations", "validate_extraction")
     workflow.add_edge("validate_extraction", "human_review_gate")
-    workflow.add_edge("human_review_gate", "finalize_response")
-
-    # Persist (called separately after review)
+    workflow.add_edge("human_review_gate", "persist_to_db2")
     workflow.add_edge("persist_to_db2", "finalize_response")
 
     # Question pipeline

@@ -27,7 +27,7 @@
     "frontend": "Streamlit + Plotly",
     "document_parser": "PyMuPDF",
     "validation": "Pydantic v2",
-    "test_suite": "Pytest (79 tests across unit, security, integration, e2e, and functional categories)"
+    "test_suite": "Pytest (80 tests across unit, security, integration, e2e, and functional categories)"
   },
   "key_features": [
     "Multi-page PDF extraction with page-level snippet and provenance tracking",

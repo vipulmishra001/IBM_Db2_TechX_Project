@@ -36,3 +36,4 @@ for fname, expected_count in reports:
 
 accuracy = (total_extracted / total_expected) * 100
 print(f"TOTAL: {total_extracted}/{total_expected} observations successfully parsed ({accuracy:.1f}% accuracy)")
+
