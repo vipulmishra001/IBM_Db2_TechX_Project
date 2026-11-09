@@ -146,18 +146,22 @@ def extract_observations_with_langchain(
     document_date: str = None,
     api_key: str = None,
     model_name: str = "gemini-2.0-flash",
+    allow_fallback: bool = True,
 ) -> ExtractionResult:
     """
     Extract structured medical observations from text using LangChain + Gemini.
-    Falls back gracefully to deterministic clinical rule parser if API key is absent or offline.
+    Falls back gracefully to deterministic clinical rule parser if API key is absent or offline
+    (only when allow_fallback=True).
     """
     doc_date = document_date or extract_date_from_text(text)
 
     if not api_key:
         api_key = os.environ.get("GEMINI_API_KEY", "")
 
-    # Offline / No Key Fallback
+    # Offline / No Key Handling
     if not api_key:
+        if not allow_fallback:
+            raise ValueError("Real Gemini API requested (allow_fallback=False) but GEMINI_API_KEY is not configured.")
         logger.info("No Gemini API key available. Executing deterministic clinical rule parser fallback.")
         rule_obs = rule_based_laboratory_parser(text, page_number=page_number, default_date=doc_date)
         return ExtractionResult(
@@ -170,7 +174,6 @@ def extract_observations_with_langchain(
     try:
         from langchain_google_genai import ChatGoogleGenerativeAI
         from langchain_core.messages import HumanMessage
-        from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
         llm = ChatGoogleGenerativeAI(
             model=model_name,
@@ -207,8 +210,8 @@ def extract_observations_with_langchain(
                 except Exception as e:
                     logger.warning(f"Skipping observation that failed validation: {e}")
 
-        # If LLM returned empty but document clearly contains clinical values, augment with rule parser
-        if not observations:
+        # If LLM returned empty but document clearly contains clinical values, augment if fallback allowed
+        if not observations and allow_fallback:
             observations = rule_based_laboratory_parser(text, page_number=page_number, default_date=doc_date)
 
         return ExtractionResult(
@@ -218,6 +221,8 @@ def extract_observations_with_langchain(
         )
 
     except Exception as e:
+        if not allow_fallback:
+            raise RuntimeError(f"LangChain Gemini extraction failed and fallback is disabled: {e}") from e
         logger.error(f"LangChain Gemini extraction failed: {e}. Executing deterministic fallback.")
         rule_obs = rule_based_laboratory_parser(text, page_number=page_number, default_date=doc_date)
         return ExtractionResult(
@@ -232,6 +237,7 @@ def extract_from_document(
     document_date: str = None,
     api_key: str = None,
     model_name: str = "gemini-2.0-flash",
+    allow_fallback: bool = True,
 ) -> ExtractionResult:
     """Extract observations across all pages of a document."""
     all_observations = []
@@ -255,6 +261,7 @@ def extract_from_document(
             document_date=global_doc_date,
             api_key=api_key,
             model_name=model_name,
+            allow_fallback=allow_fallback,
         )
         all_observations.extend(res.observations)
         if res.extraction_notes:

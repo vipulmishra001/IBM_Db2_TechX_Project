@@ -1,117 +1,132 @@
-# MediTwin AI — Extraction Benchmark & Evaluation Report (Phase 4)
+# MediTwin AI — Clinical Extraction Benchmark & Gemini Audit Report
 
-**Evaluation Date:** November 10, 2026  
-**Auditor Roles:** AI/ML Engineer, QA Auditor  
-**Corpus:** 3 Synthetic Multi-Page PDF Clinical Laboratory Reports (`sample_data/synthetic_reports/`)  
-**Target Model:** Google Gemini 2.0 Flash (`gemini-2.0-flash`) via LangChain Structured Extraction  
-**Fallback Engine:** Deterministic Clinical Laboratory Parser (`ingestion/extraction.py`)  
-
----
-
-## 1. Executive Summary & Verification Status
-
-| Extraction Mode | Status | Precision | Recall | F1-Score | Exact Match |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **1. Deterministic Fallback Parser** | ✅ **VERIFIED** | **100.00%** | **100.00%** | **100.00%** | **100.00%** |
-| **2. Live Gemini 2.0 Flash API** | ⚠️ **BLOCKED** | *Pending Key* | *Pending Key* | *Pending Key* | *Pending Key* |
-
-### Honest Disclosure Regarding Gemini API Key
-The live Gemini extraction pipeline (`ChatGoogleGenerativeAI(model="gemini-2.0-flash")`) is fully implemented with tenacity exponential-backoff retries in `ingestion/extraction.py`. However, during this audit, no active `GEMINI_API_KEY` was configured in the environment or `.env`. Therefore, the live API benchmark is marked as **BLOCKED**, while the offline deterministic fallback parser was benchmarked with 100% ground-truth accuracy.
+**Benchmark Execution Timestamp:** 2026-11-10 02:00:00 IST  
+**Evaluator:** Senior AI/ML & Clinical Systems Engineer  
+**Component:** Ingestion & Observation Extraction (`ingestion/extraction.py`, `tests/benchmark_extraction.py`)  
+**Target Ground Truth:** 24 Verified Clinical Observations across 3 Synthetic Reports  
 
 ---
 
-## 2. Benchmark Corpus & Ground Truth Specifications
+## 1. Executive Summary & Verification Matrix
 
-The evaluation corpus contains 24 manually verified ground-truth clinical observations across 3 multi-page synthetic laboratory reports:
+| Benchmark Track | Fallback Mode | Status | Ground Truth | True Positives (TP) | Precision | Recall | F1 Score |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Deterministic Clinical Parser** | Enabled (Offline) | **VERIFIED** | 24 | 24 | **100.0%** | **100.0%** | **100.0%** |
+| **Real Google Gemini 2.0 Flash API** | Strictly Disabled | **BLOCKED** | 24 | 0 | **N/A** | **N/A** | **N/A** |
 
-### Report A: `SyntheticReport_A_Oct2026.pdf`
-- **Document Date:** `2026-10-12`
-- **Report Type:** Blood Chemistry Panel
-- **Target Observations (9):**
-  1. `HBA1C`: 6.4 % (Ref: 4.0 - 5.6)
-  2. `FBS`: 108.0 mg/dL (Ref: 70 - 100)
-  3. `CHOL`: 195.0 mg/dL (Ref: < 200)
-  4. `HDL`: 52.0 mg/dL (Ref: > 40)
-  5. `LDL`: 118.0 mg/dL (Ref: < 100)
-  6. `TG`: 125.0 mg/dL (Ref: < 150)
-  7. `HGB`: 14.2 g/dL (Ref: 13.5 - 17.5)
-  8. `CREAT`: 0.9 mg/dL (Ref: 0.7 - 1.3)
-  9. `TSH`: 2.5 mIU/L (Ref: 0.4 - 4.0)
-
-### Report B: `SyntheticReport_B_Nov2026.pdf`
-- **Document Date:** `2026-11-08`
-- **Report Type:** Comprehensive Metabolic & Endocrine Panel
-- **Target Observations (9):**
-  1. `HBA1C`: 6.8 % (Ref: 4.0 - 5.6)
-  2. `FBS`: 115.0 mg/dL (Ref: 70 - 100)
-  3. `CHOL`: 202.0 mg/dL (Ref: < 200)
-  4. `HDL`: 48.0 mg/dL (Ref: > 40)
-  5. `LDL`: 128.0 mg/dL (Ref: < 100)
-  6. `TG`: 130.0 mg/dL (Ref: < 150)
-  7. `HGB`: 13.8 g/dL (Ref: 13.5 - 17.5)
-  8. `CREAT`: 1.0 mg/dL (Ref: 0.7 - 1.3)
-  9. `VITD`: 22.0 ng/mL (Ref: 30 - 100)
-
-### Report C: `SyntheticReport_C_Sep2026.pdf`
-- **Document Date:** `2026-09-20`
-- **Report Type:** General Health Check Panel
-- **Target Observations (6):**
-  1. `HBA1C`: 5.8 % (Ref: 4.0 - 5.6)
-  2. `FBS`: 98.0 mg/dL (Ref: 70 - 100)
-  3. `CHOL`: 178.0 mg/dL (Ref: < 200)
-  4. `HGB`: 15.1 g/dL (Ref: 13.5 - 17.5)
-  5. `CREAT`: 0.8 mg/dL (Ref: 0.7 - 1.3)
-  6. `TSH`: 3.2 mIU/L (Ref: 0.4 - 4.0)
+> **Audit Directive Enforced:**  
+> In accordance with strict audit instructions, **deterministic fallback is strictly disabled (`allow_fallback=False`)** during real Gemini benchmarking. Because `GEMINI_API_KEY` is not present in the local environment, the live Gemini track is honestly reported as **BLOCKED**, while the offline deterministic fallback parser is rigorously verified at 100.0% precision, recall, and F1 across all 24 ground-truth observations.
 
 ---
 
-## 3. Extraction Benchmark Results (Deterministic Engine)
+## 2. Benchmark Script & Protocol Details
 
-Executed via automated test `tests/integration/test_gemini_extraction_benchmark.py`:
+The evaluation suite is implemented in [`tests/benchmark_extraction.py`](file:///c:/Users/Vipul%20Mishra/OneDrive/Desktop/HACKATHON%20UNSTOP/tests/benchmark_extraction.py) and executes two isolated benchmark suites:
+1. `run_fallback_benchmark(sample_dir)`: Evaluates deterministic clinical rule parser against all 24 ground-truth observations.
+2. `run_gemini_benchmark(sample_dir)`: Enforces `allow_fallback=False` and calls `ChatGoogleGenerativeAI(model="gemini-2.0-flash")`. If `GEMINI_API_KEY` is not present, reports `BLOCKED` without falling back.
 
-```text
-Total Extracted: 24/24
-Precision: 100.00%
-Recall: 100.00%
-F1-score: 100.00%
-Exact Observation Match Rate: 100.00%
-Date Extraction Accuracy: 100.00% (24/24 matched)
-Numeric Value Accuracy: 100.00% (24/24 matched)
-Unit Accuracy: 100.00% (24/24 matched)
-Provenance Accuracy: 100.00% (24/24 matched)
+### Execution Command
+```powershell
+python tests/benchmark_extraction.py
 ```
 
-### Detailed Evaluation Metrics:
-- **Exact Match Rate:** `100.0%` (Every observation code, numeric measurement, and unit matches ground truth).
-- **Date Extraction Accuracy:** `100.0%` (Document dates extracted and associated with every observation).
-- **Provenance Accuracy:** `100.0%` (Source page 1 and normalized text snippets match PDF content).
-- **Pydantic Validation Pass Rate:** `100.0%` (0 schema validation errors encountered).
+### Actual Terminal Execution Output
+```text
+Locating synthetic lab reports in: C:\Users\Vipul Mishra\OneDrive\Desktop\HACKATHON UNSTOP\sample_data\synthetic_reports
+
+===========================================================================
+BENCHMARK 1: DETERMINISTIC CLINICAL FALLBACK PARSER (OFFLINE MODE)
+===========================================================================
+
+Document: SyntheticReport_A_Oct2026.pdf (Expected: 9)
+  Extracted: 9 | Date: 2026-10-12 (GT: 2026-10-12)
+  TP: 9, FP: 0, FN: 0
+  Precision: 1.00 | Recall: 1.00 | F1: 1.00
+
+Document: SyntheticReport_B_Nov2026.pdf (Expected: 9)
+  Extracted: 9 | Date: 2026-11-08 (GT: 2026-11-08)
+  TP: 9, FP: 0, FN: 0
+  Precision: 1.00 | Recall: 1.00 | F1: 1.00
+
+Document: SyntheticReport_C_Sep2026.pdf (Expected: 6)
+  Extracted: 6 | Date: 2026-09-20 (GT: 2026-09-20)
+  TP: 6, FP: 0, FN: 0
+  Precision: 1.00 | Recall: 1.00 | F1: 1.00
+
+---------------------------------------------------------------------------
+FALLBACK BENCHMARK SUMMARY:
+  Total Ground Truth Observations: 24
+  Total Correctly Extracted (TP): 24
+  False Positives (FP):           0
+  False Negatives (FN):           0
+  Aggregate Precision:            100.0%
+  Aggregate Recall:               100.0%
+  Aggregate F1 Score:             100.0%
+---------------------------------------------------------------------------
+
+===========================================================================
+BENCHMARK 2: REAL GEMINI API (FALLBACK STRICTLY DISABLED)
+===========================================================================
+
+[BLOCKED] Real Gemini API Extraction Benchmark is BLOCKED.
+  Reason: GEMINI_API_KEY environment variable is not configured.
+  Notice: Deterministic fallback was explicitly DISABLED per audit protocol.
+  Action: Set GEMINI_API_KEY in .env or run with valid credentials.
+===========================================================================
+
+===========================================================================
+FINAL BENCHMARK COMPARISON MATRIX
+===========================================================================
+Fallback Parser: Status=VERIFIED | Precision=100.0% | Recall=100.0% | F1=100.0% (24/24 TP)
+Real Gemini API: Status=BLOCKED | Reason: GEMINI_API_KEY missing with allow_fallback=False
+===========================================================================
+```
 
 ---
 
-## 4. Live Gemini API Benchmark (BLOCKED)
+## 3. Ground Truth Verification by Report
 
-### Current Status
-- **Status:** **BLOCKED (Configuration Required)**
-- **Reason:** Missing `GEMINI_API_KEY` in environment.
+### Report A: `SyntheticReport_A_Oct2026.pdf` (Report Date: `2026-10-12`)
+- **HbA1c (`HBA1C`):** `6.4 %` (Ref: `4.0 - 5.6`) $\rightarrow$ **MATCH** (Page 1)
+- **Fasting Blood Sugar (`FBS`):** `108.0 mg/dL` (Ref: `70.0 - 100.0`) $\rightarrow$ **MATCH** (Page 1)
+- **Total Cholesterol (`CHOL`):** `195.0 mg/dL` (Ref: `< 200.0`) $\rightarrow$ **MATCH** (Page 1)
+- **HDL Cholesterol (`HDL`):** `52.0 mg/dL` (Ref: `> 40.0`) $\rightarrow$ **MATCH** (Page 1)
+- **LDL Cholesterol (`LDL`):** `118.0 mg/dL` (Ref: `< 100.0`) $\rightarrow$ **MATCH** (Page 1)
+- **Triglycerides (`TG`):** `125.0 mg/dL` (Ref: `< 150.0`) $\rightarrow$ **MATCH** (Page 1)
+- **Hemoglobin (`HGB`):** `14.2 g/dL` (Ref: `13.5 - 17.5`) $\rightarrow$ **MATCH** (Page 1)
+- **Creatinine (`CREAT`):** `0.9 mg/dL` (Ref: `0.7 - 1.3`) $\rightarrow$ **MATCH** (Page 1)
+- **TSH (`TSH`):** `2.5 mIU/L` (Ref: `0.4 - 4.0`) $\rightarrow$ **MATCH** (Page 1)
 
-### Live API Configuration Instructions
-To benchmark live Gemini 2.0 Flash:
-1. Obtain an API key from Google AI Studio: `https://aistudio.google.com/`
-2. Create or update `.env` in the project root:
-   ```ini
-   GEMINI_API_KEY=AIzaSy...your_actual_key_here
-   GEMINI_MODEL=gemini-2.0-flash
-   ```
-3. Run the live benchmark:
-   ```bash
-   $env:GEMINI_API_KEY="AIzaSy...your_actual_key_here"
-   python tests/benchmark_extraction.py
-   ```
-4. Verify through UI: In the Streamlit sidebar, enter the API key in the password field and re-run Document Upload.
+### Report B: `SyntheticReport_B_Nov2026.pdf` (Report Date: `2026-11-08`)
+- **HbA1c (`HBA1C`):** `6.8 %` (Ref: `4.0 - 5.6`) $\rightarrow$ **MATCH** (Page 1)
+- **Fasting Blood Sugar (`FBS`):** `115.0 mg/dL` (Ref: `70.0 - 100.0`) $\rightarrow$ **MATCH** (Page 1)
+- **Total Cholesterol (`CHOL`):** `202.0 mg/dL` (Ref: `< 200.0`) $\rightarrow$ **MATCH** (Page 1)
+- **HDL Cholesterol (`HDL`):** `48.0 mg/dL` (Ref: `> 40.0`) $\rightarrow$ **MATCH** (Page 1)
+- **LDL Cholesterol (`LDL`):** `128.0 mg/dL` (Ref: `< 100.0`) $\rightarrow$ **MATCH** (Page 1)
+- **Triglycerides (`TG`):** `130.0 mg/dL` (Ref: `< 150.0`) $\rightarrow$ **MATCH** (Page 1)
+- **Hemoglobin (`HGB`):** `13.8 g/dL` (Ref: `13.5 - 17.5`) $\rightarrow$ **MATCH** (Page 1)
+- **Creatinine (`CREAT`):** `1.0 mg/dL` (Ref: `0.7 - 1.3`) $\rightarrow$ **MATCH** (Page 1)
+- **Vitamin D (`VITD`):** `22.0 ng/mL` (Ref: `30.0 - 100.0`) $\rightarrow$ **MATCH** (Page 1)
+
+### Report C: `SyntheticReport_C_Sep2026.pdf` (Report Date: `2026-09-20`)
+- **HbA1c (`HBA1C`):** `5.8 %` (Ref: `4.0 - 5.6`) $\rightarrow$ **MATCH** (Page 1)
+- **Fasting Blood Sugar (`FBS`):** `98.0 mg/dL` (Ref: `70.0 - 100.0`) $\rightarrow$ **MATCH** (Page 1)
+- **Total Cholesterol (`CHOL`):** `178.0 mg/dL` (Ref: `< 200.0`) $\rightarrow$ **MATCH** (Page 1)
+- **Hemoglobin (`HGB`):** `15.1 g/dL` (Ref: `13.5 - 17.5`) $\rightarrow$ **MATCH** (Page 1)
+- **TSH (`TSH`):** `3.2 mIU/L` (Ref: `0.4 - 4.0`) $\rightarrow$ **MATCH** (Page 1)
+- **Creatinine (`CREAT`):** `0.8 mg/dL` (Ref: `0.7 - 1.3`) $\rightarrow$ **MATCH** (Page 1)
 
 ---
 
-## 5. Certification Verdict
+## 4. How the User Can Run Real Gemini Benchmarking
 
-The fallback extraction engine achieves **100% precision, recall, and provenance accuracy (24/24 observations)** across all synthetic benchmark reports. The Gemini 2.0 Flash prompt and LangChain bindings are code-complete and ready for immediate activation upon provision of a Google Gemini API key.
+When an active Google Gemini API key is available, run:
+
+```powershell
+# Set key for the current PowerShell session:
+$env:GEMINI_API_KEY="AIzaSy...your_actual_key_here"
+
+# Execute the benchmark suite:
+python tests/benchmark_extraction.py
+```
+This will invoke Google Gemini 2.0 Flash live with fallback strictly disabled, calculate precision, recall, and F1 on live LLM extraction, and compare side-by-side with the verified deterministic parser.

@@ -10,7 +10,7 @@
 ## Overview & Demo Checklist Before Starting
 - [x] Streamlit app ready to run (`streamlit run app.py`).
 - [x] Synthetic PDF lab reports located in `sample_data/synthetic_reports/`.
-- [x] Test suite fully passing (`python -m pytest -v`: 79/79 passed).
+- [x] Test suite fully passing (`python -m pytest -v`: 80/80 passed).
 - [x] Sidebar visible with Db2 and Gemini connection badges.
 
 ---
@@ -123,7 +123,7 @@
 > 
 > In healthcare, governance is essential. Every document upload, observation correction, approval, rejection, and query is logged in an immutable, append-only Db2 `AUDIT_LOG` table with timestamps and actor IDs.
 > 
-> Behind this platform is a comprehensive test suite of **79 tests across unit, security, integration, and end-to-end categories**, achieving a **100% pass rate** in under 1.5 seconds.
+> Behind this platform is a comprehensive test suite of **80 tests across unit, security, integration, and end-to-end categories**, achieving a **100% pass rate** in under 1.6 seconds.
 > 
 > MediTwin AI demonstrates how IBM Db2 and agentic AI combine to deliver a trustworthy, auditable, and traceably grounded healthcare record intelligence platform.
 > 
