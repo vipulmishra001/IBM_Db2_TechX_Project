@@ -38,3 +38,4 @@ def test_unified_parse_document_dispatcher():
     pdf_path = Path("sample_data/synthetic_reports/SyntheticReport_B_Nov2026.pdf")
     doc = parse_document(pdf_path.name, pdf_path.read_bytes())
     assert doc.parse_status == "PARSED"
+

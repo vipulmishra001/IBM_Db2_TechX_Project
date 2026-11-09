@@ -129,7 +129,11 @@ def get_workflow():
 
 
 def run_upload_workflow(file_name: str, file_bytes: bytes,
-                        patient_id: int = None) -> dict:
+                        patient_id: int = None,
+                        repo = None,
+                        document_id: int = None,
+                        gemini_api_key: str = None,
+                        gemini_model: str = "gemini-2.0-flash") -> dict:
     """Run the upload pipeline through the LangGraph workflow."""
     wf = get_workflow()
     initial_state = {
@@ -137,6 +141,10 @@ def run_upload_workflow(file_name: str, file_bytes: bytes,
         "file_name": file_name,
         "file_bytes": file_bytes,
         "patient_id": patient_id,
+        "document_id": document_id,
+        "repo": repo,
+        "gemini_api_key": gemini_api_key,
+        "gemini_model": gemini_model,
         "request_type": None,
         "completed_nodes": [],
         "extracted_observations": [],
@@ -147,12 +155,18 @@ def run_upload_workflow(file_name: str, file_bytes: bytes,
     return result
 
 
-def run_question_workflow(question: str, patient_id: int = None) -> dict:
+def run_question_workflow(question: str, patient_id: int = None,
+                          repo = None,
+                          gemini_api_key: str = None,
+                          gemini_model: str = "gemini-2.0-flash") -> dict:
     """Run the question pipeline through the LangGraph workflow."""
     wf = get_workflow()
     initial_state = {
         "raw_input": question,
         "patient_id": patient_id,
+        "repo": repo,
+        "gemini_api_key": gemini_api_key,
+        "gemini_model": gemini_model,
         "request_type": None,
         "completed_nodes": [],
         "retrieved_records": [],

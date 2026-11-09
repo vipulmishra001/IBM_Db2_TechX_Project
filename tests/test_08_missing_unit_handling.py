@@ -28,3 +28,4 @@ def test_empty_string_unit_normalized_and_flagged():
     )
     assert obs.unit is None
     assert obs.needs_review is True
+

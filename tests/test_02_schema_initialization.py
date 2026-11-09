@@ -40,3 +40,4 @@ def test_schema_contains_required_constraints():
 
     # Indexes
     assert "CREATE INDEX" in content
+

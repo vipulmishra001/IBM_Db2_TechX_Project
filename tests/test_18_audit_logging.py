@@ -34,3 +34,4 @@ def test_audit_service_calls():
     # 4. Log question
     audit.log_question(patient_id=1, question="What was HbA1c?", had_evidence=True)
     assert mock_repo.log_audit.call_args[1]["action"] == "QUESTION_ASKED"
+

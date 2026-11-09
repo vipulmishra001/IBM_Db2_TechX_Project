@@ -20,3 +20,4 @@ def test_keyword_extraction():
     """Verify keyword extraction when explicit abbreviation is absent."""
     kw = identify_test_name_keyword("Show me recent cholesterol tests")
     assert kw == "cholesterol"
+

@@ -32,3 +32,4 @@ def test_approval_with_value_correction():
     assert decision.corrected_value_numeric == 6.5
     assert decision.corrected_unit == "%"
     assert decision.corrected_date == "2026-10-15"
+

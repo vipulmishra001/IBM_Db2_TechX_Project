@@ -41,3 +41,4 @@ def test_empty_file_rejected():
     valid, err = validate_file("empty.pdf", b"", max_size_mb=10)
     assert valid is False
     assert "File is empty" in err
+

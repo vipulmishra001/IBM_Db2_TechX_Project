@@ -254,3 +254,4 @@ erDiagram
 | **Zero SQL Injection** | No SQL string concatenation. Repository uses prepared statements exclusively. |
 | **Credential Protection** | Database credentials and API keys stored in `.env`; omitted from Git and prompts. |
 | **Traceability** | 100% of approved observations link to source document, page, and snippet. |
+

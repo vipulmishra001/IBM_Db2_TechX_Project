@@ -25,3 +25,4 @@ def test_synthetic_patients_structure():
 
     # Code uniqueness
     assert len(codes) == len(SYNTHETIC_PATIENTS)
+

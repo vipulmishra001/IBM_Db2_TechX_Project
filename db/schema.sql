@@ -3,10 +3,6 @@
 -- IBM Db2Hack 2026
 -- ============================================================
 
--- Schema
--- CREATE SCHEMA MEDITWIN;
--- SET CURRENT SCHEMA = 'MEDITWIN';
-
 -- ============================================================
 -- PATIENT table
 -- ============================================================
@@ -35,6 +31,8 @@ CREATE TABLE DOCUMENT (
     CONSTRAINT pk_document PRIMARY KEY (document_id),
     CONSTRAINT fk_document_patient FOREIGN KEY (patient_id)
         REFERENCES PATIENT (patient_id) ON DELETE CASCADE,
+    CONSTRAINT uq_doc_patient UNIQUE (document_id, patient_id),
+    CONSTRAINT uq_patient_source_hash UNIQUE (patient_id, source_hash),
     CONSTRAINT ck_doc_parse_status CHECK (parse_status IN ('PENDING', 'PARSED', 'FAILED'))
 );
 
@@ -45,29 +43,31 @@ CREATE INDEX idx_document_status ON DOCUMENT (parse_status);
 -- OBSERVATION table
 -- ============================================================
 CREATE TABLE OBSERVATION (
-    observation_id        INTEGER        NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
-    patient_id            INTEGER        NOT NULL,
-    document_id           INTEGER        NOT NULL,
-    test_code             VARCHAR(50),
-    test_name             VARCHAR(200)   NOT NULL,
-    value_numeric         DECIMAL(12,4),
-    value_text            VARCHAR(500),
-    unit                  VARCHAR(50),
-    reference_low         DECIMAL(12,4),
-    reference_high        DECIMAL(12,4),
-    observed_at           DATE,
-    source_page           INTEGER,
-    source_snippet        VARCHAR(500),
-    extraction_confidence DECIMAL(3,2),
-    review_status         VARCHAR(20)    NOT NULL DEFAULT 'PENDING',
-    reviewed_by           VARCHAR(100),
-    reviewed_at           TIMESTAMP,
-    created_at            TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    observation_id          INTEGER        NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+    patient_id              INTEGER        NOT NULL,
+    document_id             INTEGER        NOT NULL,
+    test_code               VARCHAR(50),
+    test_name               VARCHAR(200)   NOT NULL,
+    value_numeric           DECIMAL(12,4),
+    value_text              VARCHAR(500),
+    unit                    VARCHAR(50),
+    original_value_numeric  DECIMAL(12,4),
+    original_unit           VARCHAR(50),
+    corrected_value_numeric DECIMAL(12,4),
+    corrected_unit          VARCHAR(50),
+    reference_low           DECIMAL(12,4),
+    reference_high          DECIMAL(12,4),
+    observed_at             DATE,
+    source_page             INTEGER,
+    source_snippet          VARCHAR(500),
+    extraction_confidence   DECIMAL(3,2),
+    review_status           VARCHAR(20)    NOT NULL DEFAULT 'PENDING',
+    reviewed_by             VARCHAR(100),
+    reviewed_at             TIMESTAMP,
+    created_at              TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_observation PRIMARY KEY (observation_id),
-    CONSTRAINT fk_obs_patient FOREIGN KEY (patient_id)
-        REFERENCES PATIENT (patient_id) ON DELETE CASCADE,
-    CONSTRAINT fk_obs_document FOREIGN KEY (document_id)
-        REFERENCES DOCUMENT (document_id) ON DELETE CASCADE,
+    CONSTRAINT fk_obs_doc_patient FOREIGN KEY (document_id, patient_id)
+        REFERENCES DOCUMENT (document_id, patient_id) ON DELETE CASCADE,
     CONSTRAINT ck_obs_review_status CHECK (review_status IN ('PENDING', 'APPROVED', 'REJECTED'))
 );
 
@@ -113,4 +113,3 @@ CREATE TABLE AUDIT_LOG (
 
 CREATE INDEX idx_audit_time ON AUDIT_LOG (logged_at);
 CREATE INDEX idx_audit_entity ON AUDIT_LOG (entity_type, entity_id);
-

@@ -51,3 +51,4 @@ def test_alternate_valid_date_format_parsed():
         observed_at="15/10/2026"
     )
     assert obs.observed_at == "2026-10-15"
+

@@ -17,3 +17,4 @@ def test_unsupported_questions_return_none():
     for q in unsupported:
         assert identify_test_code(q) is None
         assert identify_test_name_keyword(q) is None
+

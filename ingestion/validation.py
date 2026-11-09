@@ -129,10 +129,61 @@ class ReviewDecision(BaseModel):
     """A human review decision for an observation."""
     observation_id: int
     action: str = Field(..., pattern="^(APPROVED|REJECTED)$")
+    corrected_test_code: Optional[str] = None
     corrected_value_numeric: Optional[float] = None
     corrected_value_text: Optional[str] = None
     corrected_unit: Optional[str] = None
     corrected_date: Optional[str] = None
     reviewer_notes: Optional[str] = None
-    reviewed_by: str = "REVIEWER"
+    reviewed_by: str = "CLINICAL_REVIEWER"
+
+    @field_validator('corrected_date')
+    @classmethod
+    def validate_corrected_date(cls, v):
+        if v is None or not str(v).strip():
+            return None
+        v = str(v).strip()
+        try:
+            parsed = datetime.strptime(v, "%Y-%m-%d")
+            if parsed.date() > date(2030, 12, 31):
+                raise ValueError("Observation date cannot be in the distant future.")
+            if parsed.date() < date(1900, 1, 1):
+                raise ValueError("Observation date cannot be before 1900.")
+            return parsed.strftime("%Y-%m-%d")
+        except ValueError as e:
+            if "format" in str(e).lower() or "does not match" in str(e).lower():
+                raise ValueError(f"Invalid date format '{v}'. Expected YYYY-MM-DD.")
+            raise
+
+    @field_validator('corrected_test_code')
+    @classmethod
+    def normalize_code(cls, v):
+        if v and str(v).strip():
+            return str(v).upper().strip()
+        return None
+
+
+def validate_observations(observations: list) -> tuple:
+    """
+    Validate a list of raw observation dictionaries or objects.
+    Returns (valid_observations, validation_errors).
+    """
+    valid_list = []
+    errors = []
+
+    for idx, item in enumerate(observations, start=1):
+        try:
+            if isinstance(item, ExtractedObservation):
+                obs = item
+            elif isinstance(item, dict):
+                obs = ExtractedObservation(**item)
+            else:
+                errors.append(f"Observation {idx}: Unsupported type {type(item)}")
+                continue
+            valid_list.append(obs)
+        except Exception as e:
+            errors.append(f"Observation {idx}: Validation error - {str(e)}")
+
+    return valid_list, errors
+
 

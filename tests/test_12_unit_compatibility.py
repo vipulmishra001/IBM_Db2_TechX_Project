@@ -32,3 +32,4 @@ def test_incompatible_units_blocks_trend_calculation():
     trend = compute_metric_trend(observations, "GLU")
     assert "incompatible units" in trend.get("message", "").lower()
     assert "absolute_change" not in trend
+

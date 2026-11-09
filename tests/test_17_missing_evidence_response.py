@@ -20,3 +20,4 @@ def test_missing_evidence_exact_response():
     assert result["has_evidence"] is False
     assert result["answer"] == "I could not find sufficient approved records to answer this question."
     assert result["evidence_cards"] == []
+

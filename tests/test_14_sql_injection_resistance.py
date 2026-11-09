@@ -23,3 +23,4 @@ def test_malicious_inputs_do_not_inject_sql():
             assert code == "HBA1C"
         else:
             assert code is None
+

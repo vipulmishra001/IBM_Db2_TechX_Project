@@ -53,3 +53,4 @@ def test_rejected_observations_excluded_from_timeline():
     trend = compute_metric_trend(approved_only, "HBA1C")
     assert trend["count"] == 1
     assert trend["latest_value"] == 6.4
+

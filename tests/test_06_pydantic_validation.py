@@ -42,3 +42,4 @@ def test_test_code_normalization():
     """Test code should normalize to uppercase."""
     obs = ExtractedObservation(test_name="Fasting Glucose", test_code="fbs")
     assert obs.test_code == "FBS"
+

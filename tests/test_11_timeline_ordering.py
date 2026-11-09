@@ -70,3 +70,4 @@ def test_metric_trend_calculation():
     assert trend["percentage_change"] == 6.25
     assert trend["first_source"] == "report_a.pdf"
     assert trend["latest_source"] == "report_b.pdf"
+

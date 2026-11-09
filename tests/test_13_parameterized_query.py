@@ -32,3 +32,4 @@ def test_no_unrestricted_query_method():
     assert "execute_arbitrary_sql" not in repo_methods
     assert "run_raw_sql" not in repo_methods
     assert "query" not in repo_methods
+

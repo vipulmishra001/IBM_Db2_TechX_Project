@@ -92,7 +92,17 @@ class Db2Repository:
                         document_type: str = "LAB_REPORT",
                         extracted_text: str = None,
                         source_hash: str = None) -> Optional[int]:
-        """Insert a new document. Returns document_id."""
+        """
+        Insert a new document with duplicate hash protection.
+        Returns document_id or existing document_id if duplicate.
+        """
+        # First check if document with same hash already exists for this patient
+        if source_hash:
+            existing = self.get_document_by_hash(patient_id, source_hash)
+            if existing:
+                logger.info(f"Document with hash {source_hash[:10]} already exists (ID: {existing['DOCUMENT_ID']})")
+                return existing["DOCUMENT_ID"]
+
         sql = """
             INSERT INTO DOCUMENT (patient_id, file_name, document_type,
                                   extracted_text, source_hash)
@@ -118,6 +128,16 @@ class Db2Repository:
             self.connection.rollback()
             logger.error(f"Error creating document: {e}")
             raise
+
+    def get_document_by_hash(self, patient_id: int, source_hash: str) -> Optional[Dict]:
+        """Find an existing document for a patient by SHA-256 hash."""
+        sql = "SELECT * FROM DOCUMENT WHERE patient_id = ? AND source_hash = ?"
+        stmt = ibm_db.prepare(self.connection.conn, sql)
+        ibm_db.bind_param(stmt, 1, patient_id)
+        ibm_db.bind_param(stmt, 2, source_hash)
+        ibm_db.execute(stmt)
+        row = ibm_db.fetch_assoc(stmt)
+        return dict(row) if row else None
 
     def update_document_status(self, document_id: int, status: str,
                                 extracted_text: str = None):
@@ -172,15 +192,31 @@ class Db2Repository:
                            observed_at: str = None, source_page: int = None,
                            source_snippet: str = None,
                            extraction_confidence: float = None) -> Optional[int]:
-        """Insert a new observation with PENDING status. Returns observation_id."""
+        """
+        Insert a new observation with PENDING status.
+        Guarantees cross-patient integrity: document must belong to patient_id.
+        Preserves original values in original_value_numeric and original_unit.
+        """
+        # Cross-patient verification
+        doc = self.get_document(document_id)
+        if not doc:
+            raise ValueError(f"Referenced document {document_id} does not exist.")
+        doc_patient = doc.get("PATIENT_ID") or doc.get("patient_id")
+        if int(doc_patient) != int(patient_id):
+            raise ValueError(
+                f"Cross-patient integrity violation: Document {document_id} belongs to "
+                f"patient {doc_patient}, cannot attach observation for patient {patient_id}."
+            )
+
         sql = """
             INSERT INTO OBSERVATION
                 (patient_id, document_id, test_code, test_name,
                  value_numeric, value_text, unit,
+                 original_value_numeric, original_unit,
                  reference_low, reference_high, observed_at,
                  source_page, source_snippet, extraction_confidence,
                  review_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')
         """
         try:
             stmt = ibm_db.prepare(self.connection.conn, sql)
@@ -191,12 +227,14 @@ class Db2Repository:
             ibm_db.bind_param(stmt, 5, value_numeric)
             ibm_db.bind_param(stmt, 6, value_text)
             ibm_db.bind_param(stmt, 7, unit)
-            ibm_db.bind_param(stmt, 8, reference_low)
-            ibm_db.bind_param(stmt, 9, reference_high)
-            ibm_db.bind_param(stmt, 10, observed_at)
-            ibm_db.bind_param(stmt, 11, source_page)
-            ibm_db.bind_param(stmt, 12, source_snippet)
-            ibm_db.bind_param(stmt, 13, extraction_confidence)
+            ibm_db.bind_param(stmt, 8, value_numeric)  # original_value_numeric
+            ibm_db.bind_param(stmt, 9, unit)           # original_unit
+            ibm_db.bind_param(stmt, 10, reference_low)
+            ibm_db.bind_param(stmt, 11, reference_high)
+            ibm_db.bind_param(stmt, 12, observed_at)
+            ibm_db.bind_param(stmt, 13, source_page)
+            ibm_db.bind_param(stmt, 14, source_snippet)
+            ibm_db.bind_param(stmt, 15, extraction_confidence)
             ibm_db.execute(stmt)
 
             id_stmt = ibm_db.exec_immediate(
@@ -210,31 +248,92 @@ class Db2Repository:
             raise
 
     def update_observation_review(self, observation_id: int, status: str,
-                                   reviewed_by: str = "REVIEWER",
-                                   value_numeric: float = None,
-                                   value_text: str = None,
-                                   unit: str = None,
-                                   observed_at: str = None):
-        """Update observation review status and optionally correct values."""
+                                   reviewed_by: str = "CLINICAL_REVIEWER",
+                                   value_numeric: Optional[float] = None,
+                                   value_text: Optional[str] = None,
+                                   unit: Optional[str] = None,
+                                   observed_at: Optional[str] = None,
+                                   test_code: Optional[str] = None,
+                                   reviewer_notes: Optional[str] = None):
+        """
+        Update observation review status, apply validated corrections,
+        and atomically record audit event within a single transaction.
+        Handles value_numeric == 0.0 correctly without erring as false/None.
+        """
+        # Fetch current record first to detect changes
+        current = self.get_observation(observation_id)
+        if not current:
+            raise ValueError(f"Observation {observation_id} not found.")
+
+        # Determine corrected values
+        orig_val = current.get("VALUE_NUMERIC")
+        new_val = value_numeric if value_numeric is not None else orig_val
+        new_code = test_code if test_code is not None else current.get("TEST_CODE")
+        new_unit = unit if unit is not None else current.get("UNIT")
+        new_date = observed_at if observed_at is not None else current.get("OBSERVED_AT")
+
+        is_corrected = (
+            (value_numeric is not None and float(value_numeric) != float(orig_val if orig_val is not None else -999999)) or
+            (unit is not None and unit != current.get("UNIT")) or
+            (test_code is not None and test_code != current.get("TEST_CODE")) or
+            (observed_at is not None and str(observed_at) != str(current.get("OBSERVED_AT")))
+        )
+
+        corr_val = new_val if is_corrected else current.get("CORRECTED_VALUE_NUMERIC")
+        corr_unit = new_unit if is_corrected else current.get("CORRECTED_UNIT")
+
         sql = """
             UPDATE OBSERVATION
-            SET review_status = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP,
-                value_numeric = COALESCE(?, value_numeric),
+            SET review_status = ?,
+                reviewed_by = ?,
+                reviewed_at = CURRENT_TIMESTAMP,
+                value_numeric = ?,
                 value_text = COALESCE(?, value_text),
-                unit = COALESCE(?, unit),
-                observed_at = COALESCE(?, observed_at)
+                unit = ?,
+                observed_at = ?,
+                test_code = ?,
+                corrected_value_numeric = ?,
+                corrected_unit = ?
             WHERE observation_id = ?
         """
-        stmt = ibm_db.prepare(self.connection.conn, sql)
-        ibm_db.bind_param(stmt, 1, status)
-        ibm_db.bind_param(stmt, 2, reviewed_by)
-        ibm_db.bind_param(stmt, 3, value_numeric)
-        ibm_db.bind_param(stmt, 4, value_text)
-        ibm_db.bind_param(stmt, 5, unit)
-        ibm_db.bind_param(stmt, 6, observed_at)
-        ibm_db.bind_param(stmt, 7, observation_id)
-        ibm_db.execute(stmt)
-        self.connection.commit()
+        with self.connection.transaction():
+            stmt = ibm_db.prepare(self.connection.conn, sql)
+            ibm_db.bind_param(stmt, 1, status)
+            ibm_db.bind_param(stmt, 2, reviewed_by)
+            ibm_db.bind_param(stmt, 3, new_val)
+            ibm_db.bind_param(stmt, 4, value_text)
+            ibm_db.bind_param(stmt, 5, new_unit)
+            ibm_db.bind_param(stmt, 6, new_date)
+            ibm_db.bind_param(stmt, 7, new_code)
+            ibm_db.bind_param(stmt, 8, corr_val)
+            ibm_db.bind_param(stmt, 9, corr_unit)
+            ibm_db.bind_param(stmt, 10, observation_id)
+            ibm_db.execute(stmt)
+
+            # Atomically write audit record in the exact same transaction
+            audit_sql = """
+                INSERT INTO AUDIT_LOG (actor_id, action, entity_type, entity_id, details_json)
+                VALUES (?, ?, 'OBSERVATION', ?, ?)
+            """
+            audit_stmt = ibm_db.prepare(self.connection.conn, audit_sql)
+            action_name = f"OBSERVATION_{status}"
+            details = {
+                "reviewer": reviewed_by,
+                "notes": reviewer_notes,
+                "is_corrected": is_corrected,
+                "original_value": orig_val,
+                "new_value": new_val,
+                "original_unit": current.get("UNIT"),
+                "new_unit": new_unit,
+                "original_code": current.get("TEST_CODE"),
+                "new_code": new_code,
+            }
+            details_json = json.dumps(details)
+            ibm_db.bind_param(audit_stmt, 1, reviewed_by)
+            ibm_db.bind_param(audit_stmt, 2, action_name)
+            ibm_db.bind_param(audit_stmt, 3, observation_id)
+            ibm_db.bind_param(audit_stmt, 4, details_json)
+            ibm_db.execute(audit_stmt)
 
     def get_pending_observations(self, patient_id: int = None) -> List[Dict]:
         """Get observations awaiting review."""
@@ -284,7 +383,7 @@ class Db2Repository:
             FROM OBSERVATION o
             JOIN DOCUMENT d ON o.document_id = d.document_id
             WHERE {where}
-            ORDER BY o.observed_at ASC
+            ORDER BY o.observed_at ASC, o.observation_id ASC
         """
         stmt = ibm_db.prepare(self.connection.conn, sql)
         for i, p in enumerate(params, 1):
@@ -328,7 +427,7 @@ class Db2Repository:
             JOIN DOCUMENT d ON o.document_id = d.document_id
             WHERE o.patient_id = ? AND o.test_code = ?
                   AND o.review_status = 'APPROVED'
-            ORDER BY o.observed_at DESC
+            ORDER BY o.observed_at DESC, o.observation_id DESC
             FETCH FIRST 1 ROW ONLY
         """
         stmt = ibm_db.prepare(self.connection.conn, sql)
@@ -463,4 +562,3 @@ class Db2Repository:
         ibm_db.bind_param(stmt, 2, f"%{keyword}%")
         ibm_db.execute(stmt)
         return self.connection.fetch_all(stmt)
-

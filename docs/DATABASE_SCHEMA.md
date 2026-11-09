@@ -143,3 +143,4 @@ An immutable, append-only log capturing critical platform operations for regulat
   ibm_db.execute(stmt)
   ```
 - **Zero Raw Dynamic SQL:** The LLM has zero direct SQL execution rights. Queries are strictly dispatched via repository methods.
+
