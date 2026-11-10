@@ -31,6 +31,7 @@ htmlcov/
 # Data
 *.pdf
 !sample_data/synthetic_reports/*.pdf
+docs/video_scenes/
 
 # Db2
 *.lock

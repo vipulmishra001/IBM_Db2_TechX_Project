@@ -295,3 +295,4 @@ if __name__ == "__main__":
     save_human_review()
     save_ask_meditwin()
     print("Screenshots successfully generated!")
+
