@@ -1,45 +1,45 @@
 {
-  "project_name": "MediTwin AI",
-  "tagline": "Traceable Clinical Record Intelligence Platform",
-  "category": "Healthcare Record Intelligence",
-  "event": "IBM Db2Hack 2026",
-  "submission_date": "2026-11-10",
-  "author": {
-    "name": "Vipul Mishra",
-    "role": "Solo Builder"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": {
+    "title": "MediTwin AI",
+    "slug": "meditwin-ai",
+    "short_description": "Traceable Clinical Record Intelligence Platform converting scattered medical reports into structured, searchable, and chronological patient records backed by IBM Db2.",
+    "category": "AI / RAG / Data Engineering / Analytics",
+    "demo_url": "",
+    "video_url": "",
+    "repo_url": "https://github.com/vipulmishra001/IBM_Db2_TechX_Project"
   },
-  "technology_stack": {
-    "database": {
-      "system": "IBM Db2 Community Edition",
-      "connector": "ibm_db",
-      "schema_tables": ["PATIENT", "DOCUMENT", "OBSERVATION", "TIMELINE_EVENT", "AUDIT_LOG"],
-      "query_type": "Prepared statements with variable parameter binding"
-    },
-    "ai_frameworks": [
-      "LangChain",
-      "LangGraph"
-    ],
-    "llm_provider": {
-      "provider": "Google Gemini",
-      "model": "gemini-2.0-flash",
-      "usage": "Structured document extraction and evidence-grounded summarization"
-    },
-    "frontend": "Streamlit + Plotly",
-    "document_parser": "PyMuPDF",
-    "validation": "Pydantic v2",
-    "test_suite": "Pytest (80 tests across unit, security, integration, e2e, and functional categories)"
+  "team": {
+    "name": "MediTwin Team",
+    "members": [
+      {
+        "name": "Vipul Mishra",
+        "github": "vipulmishra001",
+        "email": "vipul2006mishra@gmail.com",
+        "role": "Solo Builder / Full-Stack AI & Database Engineer"
+      }
+    ]
   },
-  "key_features": [
-    "Multi-page PDF extraction with page-level snippet and provenance tracking",
-    "Strict Pydantic schema validation for numeric values, units, and dates",
-    "Mandatory human-in-the-loop verification gate (PENDING -> APPROVED/REJECTED)",
-    "Relational Db2 storage with strict foreign keys and transactional rollback",
-    "Deterministic longitudinal trend calculation (no hallucinated differences)",
-    "Evidence-grounded Q&A backed strictly by approved Db2 records",
-    "Append-only audit logging for compliance and governance",
-    "Full adherence to medical safety boundaries (synthetic demo data only, no autonomous diagnosis)"
-  ],
-  "entrypoint": "app.py",
-  "test_command": "pytest -v"
+  "ibm_db2": {
+    "edition": "Db2 Community Edition (Docker / Native Windows)",
+    "connector": "ibm_db",
+    "features_used": [
+      "Relational Tables (PATIENT, DOCUMENT, OBSERVATION, TIMELINE_EVENT, AUDIT_LOG)",
+      "Prepared Statements with Variable Parameter Markers",
+      "Composite Foreign Key Data Isolation (DOCUMENT_ID, PATIENT_ID)",
+      "ACID Transaction Commit and Rollback Contexts",
+      "Append-Only Audit Logging"
+    ]
+  },
+  "tech_stack": {
+    "languages": ["Python"],
+    "frameworks": ["Streamlit", "Plotly", "LangChain", "LangGraph", "Pydantic v2", "PyMuPDF", "Pytest"],
+    "ai_models": ["Google Gemini 2.0 Flash"]
+  },
+  "verification": {
+    "test_command": "python -m pytest -v",
+    "total_tests": 80,
+    "pass_rate": "100%",
+    "entrypoint": "app.py"
+  }
 }
-

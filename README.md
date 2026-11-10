@@ -254,30 +254,47 @@ platform win32 -- Python 3.11.9, pytest-9.1.1, pluggy-1.6.0
 rootdir: C:\Users\Vipul Mishra\OneDrive\Desktop\HACKATHON UNSTOP
 configfile: pytest.ini
 testpaths: tests
-collected 79 items
+collected 80 items
 
 tests/e2e/test_e2e_workflow.py::test_full_patient_lifecycle_e2e PASSED   [  1%]
-tests/integration/test_db2_live.py::test_live_db2_connection_probe PASSED [  2%]
-tests/integration/test_db2_live.py::test_db2_driver_level_information PASSED [  3%]
-tests/integration/test_gemini_extraction_benchmark.py::test_synthetic_reports_complete_extraction_benchmark PASSED [  5%]
-tests/integration/test_langgraph_integration.py::test_run_upload_workflow_end_to_end PASSED [  6%]
-tests/integration/test_langgraph_integration.py::test_run_question_workflow_insufficient_evidence PASSED [  7%]
-tests/integration/test_langgraph_integration.py::test_run_question_workflow_with_evidence PASSED [  8%]
-tests/security/test_patient_isolation.py::test_cross_patient_document_reference_rejected PASSED [ 10%]
-tests/security/test_prompt_injection.py::test_adversarial_prompt_injection_safety_catch PASSED [ 11%]
-tests/security/test_sql_injection.py::test_repository_source_uses_parameter_markers_only PASSED [ 12%]
-tests/security/test_sql_injection.py::test_malicious_query_payloads_do_not_inject PASSED [ 13%]
-tests/security/test_unsupported_questions.py::test_out_of_domain_queries_suppressed PASSED [ 15%]
-tests/test_01_db2_connection.py::test_db2_settings_connection_string PASSED [ 16%]
+tests/e2e/test_e2e_workflow.py::test_patient_isolation_e2e PASSED        [  2%]
+tests/integration/test_db2_live.py::test_live_db2_connection_probe PASSED [  3%]
+tests/integration/test_db2_live.py::test_db2_driver_level_information PASSED [  5%]
+tests/integration/test_gemini_extraction_benchmark.py::test_synthetic_reports_complete_extraction_benchmark PASSED [  6%]
+tests/integration/test_langgraph_integration.py::test_run_upload_workflow_end_to_end PASSED [  7%]
+tests/integration/test_langgraph_integration.py::test_run_question_workflow_insufficient_evidence PASSED [  8%]
+tests/integration/test_langgraph_integration.py::test_run_question_workflow_with_evidence PASSED [ 10%]
+tests/security/test_patient_isolation.py::test_cross_patient_document_reference_rejected PASSED [ 11%]
+tests/security/test_prompt_injection.py::test_adversarial_prompt_injection_safety_catch PASSED [ 12%]
+tests/security/test_sql_injection.py::test_repository_source_uses_parameter_markers_only PASSED [ 13%]
+tests/security/test_sql_injection.py::test_malicious_query_payloads_do_not_inject PASSED [ 15%]
+tests/security/test_unsupported_questions.py::test_out_of_domain_queries_suppressed PASSED [ 16%]
+tests/test_01_db2_connection.py::test_db2_settings_connection_string PASSED [ 17%]
 ...
 tests/unit/test_validation_models.py::test_review_decision_invalid_date PASSED [100%]
 
-============================= 79 passed in 1.31s ==============================
+============================= 80 passed in 1.50s ==============================
 ```
 
 ---
 
-## 8. End-to-End User Journey
+## 8. Platform Screenshots & Walkthrough
+
+### 1. Dashboard & Operational Health
+![Dashboard Overview](docs/screenshots/01_dashboard.png)
+
+### 2. Longitudinal Patient Workspace & Metric Trends
+![Patient Workspace](docs/screenshots/02_patient_workspace.png)
+
+### 3. Mandatory Clinician Review Gate & Provenance Citations
+![Human Review Gate](docs/screenshots/03_human_review.png)
+
+### 4. Evidence-Grounded Q&A with Safety Guardrails
+![Ask MediTwin](docs/screenshots/04_ask_meditwin.png)
+
+---
+
+## 9. End-to-End User Journey
 
 1. **Dashboard:** Displays connected IBM Db2 server version, synthetic patient count, uploaded document count, and pending review badge.
 2. **Patient Workspace:** View longitudinal records for selected synthetic patient (e.g. `DEMO-001`), interactive Plotly trend graphs, and chronological test history.
@@ -288,7 +305,7 @@ tests/unit/test_validation_models.py::test_review_decision_invalid_date PASSED [
 
 ---
 
-## 9. Submission Metadata
+## 10. Submission Metadata
 
 - **Track:** IBM Db2Hack 2026
 - **Project Name:** MediTwin AI
