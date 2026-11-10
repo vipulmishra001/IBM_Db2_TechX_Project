@@ -13,8 +13,8 @@ Both primary and submission branches are synchronized and up-to-date:
 
 | Branch Name | Head Commit SHA | Description | Working Tree |
 | :--- | :--- | :--- | :---: |
-| `master` | Synchronized | Complete targeted audit, benchmark track separation, and 80-test harmonization | **Clean** |
-| `submission/meditwin-ai` | Synchronized | Fast-forward synchronized with `master` | **Clean** |
+| `master` | `696b4cc` | Complete targeted audit, benchmark track separation, 80-test harmonization, and .venv gitignore | **Clean** |
+| `submission/meditwin-ai` | `696b4cc` | Fast-forward synchronized with `master` | **Clean** |
 
 ---
 
